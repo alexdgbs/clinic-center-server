@@ -48,7 +48,34 @@ const medicos = [
     telefono: "33 1811 1188",
     experiencia: "Soy el Dr. Hugo Alonso Reyes, cirujano oftalmólogo con alta especialidad en córnea, catarata y cirugía refractiva. A lo largo de casi 10 años de experiencia, mi mayor compromiso ha sido ayudar a mis pacientes a ver mejor y vivir mejor.",
     imagen: "https://s3.us-east-1.amazonaws.com/doctoralia.com.mx/doctor/4f81c7/4f81c71da399491404b5cfbc53c77ca4_large.jpg"
-  }
+  },
+    {
+    nombre: "Dra. Gretel Ojeda Aguilar",
+    especialidad: "Gastroenterólogo",
+    descripcion: "Enfocado en: Endoscopia Digestiva.",
+    cedula: "12450949 9754708 EAD-0061",
+    telefono: "33 2917 1402",
+    experiencia: "Dedicada a manejar las enfermedades gastrointestinales y hepáticas.",
+    imagen: "https://s3.us-east-1.amazonaws.com/doctoralia.com.mx/doctor/7d1dd6/7d1dd6a076d0f15b2ea1045360fc6ac6_large.jpg"
+  },
+    {
+    nombre: "Dr. Francisco Javier",
+    especialidad: "Cardiólogo",
+    descripcion: "Enfocado en: Pruebas Diagnósticas, Pruebas de Esfuerzo, Electrocardiogramas, Ecocardiografía.",
+    cedula: "7198308 10727575",
+    telefono: "33 1591 4628",
+    experiencia: "Cardiólogo certificado por el Consejo Mexicano de Cardiología. Mejor cardiólogo de México (2018, 2019 y 2020).",
+    imagen: "https://pixel-p3.s3.us-east-1.amazonaws.com/doctor/avatar/420e4ea5/420e4ea5-c304-4714-b041-3dcf7461849c_large.jpg"
+  },
+    {
+    nombre: "Dr. Yonatan Armendariz",
+    especialidad: "Dermatólogo",
+    descripcion: "Enfocado en: Detección Precoz del Cáncer de Piel, Cirugía de la Piel, Enfermedades del Cabello y de las Uñas.",
+    cedula: "12002824 14160745",
+    telefono: "33 1151 9757",
+    experiencia: "Práctica Privada: Núcleo Médico Bari Reserve - 2025 a la actualidad, Médico adscrito al Hospital Civil de Guadalajara Fray Antonio Alcalde - 2024 a 2025, Prácticas Profesionales - 2021 a 2024.",
+    imagen: "https://pixel-p3.s3.us-east-1.amazonaws.com/doctor/avatar/98396f7c/98396f7c-175f-4c11-b9aa-d1148e002db7_large.jpg"
+  },
 ];
 
 const seedDB = async () => {
