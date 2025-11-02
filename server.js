@@ -24,12 +24,19 @@ const medicoSchema = new mongoose.Schema({
   imagen: String,
   valoraciones: [
     {
+      userId: String,
+      estrellas: Number,
+    },
+  ],
+  comentarios: [
+    {
       userId: String, 
-      estrellas: Number, 
+      nombre: String,
+      texto: String,
+      fecha: { type: Date, default: Date.now },
     },
   ],
 });
-
 
 const Medico = mongoose.model("Medico", medicoSchema);
 
@@ -88,6 +95,48 @@ app.post("/api/medicos/:id/valorar", async (req, res) => {
     res.status(500).json({ message: "Error al valorar médico" });
   }
 });
+app.post("/api/medicos/:id/comentar", async (req, res) => {
+  const { id } = req.params;
+  const { userId, nombre, texto } = req.body;
+
+  if (!userId || !nombre || !texto)
+    return res.status(400).json({ message: "Faltan datos requeridos" });
+
+  try {
+    const medico = await Medico.findById(id);
+    if (!medico)
+      return res.status(404).json({ message: "Médico no encontrado" });
+    const comentarioExistente = medico.comentarios.find(c => c.userId === userId);
+
+    if (comentarioExistente) {
+      comentarioExistente.texto = texto;
+      comentarioExistente.fecha = new Date();
+    } else {
+      medico.comentarios.push({ userId, nombre, texto });
+    }
+
+    await medico.save();
+
+    res.json({ message: "Comentario guardado correctamente" });
+  } catch (err) {
+    console.error("Error al agregar comentario:", err);
+    res.status(500).json({ message: "Error al agregar comentario" });
+  }
+});
+app.get("/api/medicos/:id/comentarios", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const medico = await Medico.findById(id);
+    if (!medico)
+      return res.status(404).json({ message: "Médico no encontrado" });
+
+    res.json(medico.comentarios || []);
+  } catch (err) {
+    console.error("Error al obtener comentarios:", err);
+    res.status(500).json({ message: "Error al obtener comentarios" });
+  }
+});
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
