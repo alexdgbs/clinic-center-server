@@ -11,21 +11,20 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "https://clinic-center.vercel.app",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
   }
 });
 
 app.use(cors({
-  origin: "*",
+  origin: "https://clinic-center.vercel.app",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
 app.use(express.json());
 
-mongoose
-  .connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("Conectado a MongoDB Atlas"))
   .catch((err) => console.error("Error al conectar MongoDB:", err));
 
@@ -52,7 +51,7 @@ app.get("/api/medicos", async (req, res) => {
       return { ...m.toObject(), promedio };
     });
     res.json(medicosConPromedio);
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "Error al obtener médicos" });
   }
 });
@@ -78,7 +77,6 @@ app.post("/api/medicos/:id/valorar", async (req, res) => {
     }
 
     await medico.save();
-
     const total = medico.valoraciones.length;
     const promedio = total > 0 ? medico.valoraciones.reduce((a, v) => a + v.estrellas, 0) / total : 0;
 
@@ -135,4 +133,4 @@ io.on("connection", socket => {
 });
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT);
+server.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
