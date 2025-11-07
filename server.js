@@ -2,9 +2,19 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
+import http from "http";
+import { Server } from "socket.io";
 
 dotenv.config();
 const app = express();
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
 app.use(cors());
 app.use(express.json());
@@ -30,7 +40,7 @@ const medicoSchema = new mongoose.Schema({
   ],
   comentarios: [
     {
-      userId: String, 
+      userId: String,
       nombre: String,
       texto: String,
       fecha: { type: Date, default: Date.now },
@@ -73,12 +83,16 @@ app.post("/api/medicos/:id/valorar", async (req, res) => {
     const medico = await Medico.findById(id);
     if (!medico) return res.status(404).json({ message: "Médico no encontrado" });
 
+    let valoracionGuardada;
     const existente = medico.valoraciones.find((v) => v.userId === userId);
 
     if (existente) {
-      existente.estrellas = estrellas; 
+      existente.estrellas = estrellas;
+      valoracionGuardada = existente;
     } else {
-      medico.valoraciones.push({ userId, estrellas }); 
+      const nuevaValoracion = { userId, estrellas };
+      medico.valoraciones.push(nuevaValoracion);
+      valoracionGuardada = medico.valoraciones[medico.valoraciones.length - 1];
     }
 
     await medico.save();
@@ -89,12 +103,19 @@ app.post("/api/medicos/:id/valorar", async (req, res) => {
         ? medico.valoraciones.reduce((a, v) => a + v.estrellas, 0) / total
         : 0;
 
+    io.emit("nueva_valoracion", {
+      medicoId: medico._id,
+      promedio: promedio,
+      valoracion: valoracionGuardada,
+    });
+
     res.json({ message: "Valoración guardada", promedio });
   } catch (err) {
     console.error("Error al valorar médico:", err);
     res.status(500).json({ message: "Error al valorar médico" });
   }
 });
+
 app.post("/api/medicos/:id/comentar", async (req, res) => {
   const { id } = req.params;
   const { userId, nombre, texto } = req.body;
@@ -106,16 +127,30 @@ app.post("/api/medicos/:id/comentar", async (req, res) => {
     const medico = await Medico.findById(id);
     if (!medico)
       return res.status(404).json({ message: "Médico no encontrado" });
-    const comentarioExistente = medico.comentarios.find(c => c.userId === userId);
+
+    const comentarioExistente = medico.comentarios.find(
+      (c) => c.userId === userId
+    );
+
+    let comentarioGuardado;
 
     if (comentarioExistente) {
       comentarioExistente.texto = texto;
+      comentarioExistente.nombre = nombre;
       comentarioExistente.fecha = new Date();
+      comentarioGuardado = comentarioExistente;
     } else {
-      medico.comentarios.push({ userId, nombre, texto });
+      const nuevoComentario = { userId, nombre, texto, fecha: new Date() };
+      medico.comentarios.push(nuevoComentario);
+      comentarioGuardado = medico.comentarios[medico.comentarios.length - 1];
     }
 
     await medico.save();
+
+    io.emit("nuevo_comentario", {
+      medicoId: medico._id,
+      comentario: comentarioGuardado,
+    });
 
     res.json({ message: "Comentario guardado correctamente" });
   } catch (err) {
@@ -123,6 +158,7 @@ app.post("/api/medicos/:id/comentar", async (req, res) => {
     res.status(500).json({ message: "Error al agregar comentario" });
   }
 });
+
 app.get("/api/medicos/:id/comentarios", async (req, res) => {
   const { id } = req.params;
   try {
@@ -137,6 +173,15 @@ app.get("/api/medicos/:id/comentarios", async (req, res) => {
   }
 });
 
+io.on("connection", (socket) => {
+  console.log("Un usuario se ha conectado:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("Un usuario se ha desconectado:", socket.id);
+  });
+});
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
+server.listen(PORT, () =>
+  console.log(`Servidor (y Sockets) corriendo en puerto ${PORT}`)
+);
